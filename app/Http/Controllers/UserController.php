@@ -16,7 +16,28 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
+        try {
+            $users = User::select([
+                'id',
+                'name',
+                'email',
+                'created_at',
+                'updated_at',
+            ])->get()->toArray();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Users retrieved successfully',
+                'data' => $users,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to retrieve users: ' . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to retrieve users',
+                'data' => [],
+            ]);
+        }
     }
 
     /**
