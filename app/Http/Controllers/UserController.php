@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Spatie\Permission\Exceptions\RoleDoesNotExist;
 use Symfony\Component\HttpFoundation\Response as ResponseCode;
 
 class UserController extends Controller
@@ -17,6 +21,8 @@ class UserController extends Controller
     public function index()
     {
         try {
+            Gate::authorize('viewAny');
+
             $users = User::select([
                 'id',
                 'name',
@@ -25,19 +31,26 @@ class UserController extends Controller
                 'updated_at',
             ])->get()->toArray();
 
+        } catch (AuthorizationException $e) {
             return response()->json([
-                'status' => true,
-                'message' => 'Users retrieved successfully',
-                'data' => $users,
-            ]);
+                'status' => false,
+                'message' => 'This action is unauthorized.',
+                'data' => [],
+            ], ResponseCode::HTTP_FORBIDDEN);
         } catch (\Throwable $e) {
             Log::error('Failed to retrieve users: ' . $e->getMessage());
             return response()->json([
                 'status' => false,
-                'message' => 'Failed to retrieve users',
+                'message' => 'Failed to retrieve users: ' . $e->getMessage(),
                 'data' => [],
-            ]);
+            ], ResponseCode::HTTP_INTERNAL_SERVER_ERROR);
         }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Users retrieved successfully',
+            'data' => $users,
+        ]);
     }
 
     /**
