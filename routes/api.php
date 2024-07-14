@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthenticationController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,10 +16,17 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('logout', [AuthenticationController::class, 'logout']);
 
     Route::prefix('user')->group(function () {
-        Route::get('/', [UserController::class, 'index'])->middleware('can:view users');
+        Route::get('/', [UserController::class, 'index']);
 
-        // TODO: Update user details, 使用 policy 來處理 管理員可看全部 客戶只能看自己。查一下 laravel route 變數怎麼寫
-        Route::put('/{id}', [UserController::class, 'update'])->middleware('can:view users, edit users');
-        Route::get('/{id}', [UserController::class, 'show'])->middleware('can:view users');
+        Route::put('/{id}', [UserController::class, 'update']);
+        Route::get('/{id}', [UserController::class, 'show']);
+
+        Route::put('/{id}/role', [UserController::class, 'assignRole']);
+    });
+
+    Route::prefix('role')->group(function () {
+        // TODO: Use model policy to control the access to this route.
+        Route::get('/', [RoleController::class, 'index']);
+        Route::post('/', [RoleController::class, 'store']);
     });
 });

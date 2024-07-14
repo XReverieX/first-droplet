@@ -17,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,
+// NOTE: Uncomment to enable Spatie Permission Middleware, now is using model policy.
+// See: https://spatie.be/docs/laravel-permission/v6/basic-usage/middleware
+//            'role' => RoleMiddleware::class,
+//            'permission' => PermissionMiddleware::class,
+//            'role_or_permission' => RoleOrPermissionMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
