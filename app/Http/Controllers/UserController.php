@@ -85,9 +85,47 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
-        //
+        try {
+            $user = User::select([
+                'id',
+                'name',
+                'email',
+                'created_at',
+                'updated_at',
+            ])->find($id);
+
+            Gate::authorize('view', $user);
+
+            if (!$user) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'User not found',
+                    'data' => [],
+                ], ResponseCode::HTTP_NOT_FOUND);
+            }
+
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'This action is unauthorized.',
+                'data' => [],
+            ], ResponseCode::HTTP_FORBIDDEN);
+        } catch (\Throwable $e) {
+            Log::error('Failed to retrieve user: ' . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to retrieve user: ' . $e->getMessage(),
+                'data' => [],
+            ], ResponseCode::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'User retrieved successfully',
+            'data' => $user,
+        ]);
     }
 
     /**
