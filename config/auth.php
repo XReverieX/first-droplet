@@ -14,7 +14,7 @@ return [
     */
 
     'defaults' => [
-        'guard' => env('AUTH_GUARD', 'web'),
+        'guard' => env('AUTH_GUARD', 'sanctum'),
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
@@ -38,6 +38,13 @@ return [
     'guards' => [
         'web' => [
             'driver' => 'session',
+            'provider' => 'users',
+        ],
+        // NOTE: 由於我們使用 Sanctum 來處理 API 請求，所以我們需要設定一個新的 guard 來處理 API 請求
+        // NOTE: 但不知道為什麼會自動使用 web 所以要設定為 sanctum，因為發生 The given role or permission should use guard `web` instead of `sanctum` 的錯誤
+        // NOTE: 預設改成使用 sanctum，這個專案只會使用 api。
+        'sanctum' => [
+            'driver' => 'sanctum',
             'provider' => 'users',
         ],
     ],
