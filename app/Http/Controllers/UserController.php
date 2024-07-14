@@ -143,4 +143,62 @@ class UserController extends Controller
     {
         //
     }
+
+    /**
+     * Assign role to user.
+     *
+     * @param Request $request
+     * @param string $id
+     * @return JsonResponse
+     */
+    public function assignRole(Request $request, string $id): JsonResponse
+    {
+        try {
+            Gate::authorize('assignRole', auth()->user());
+
+            $user = User::select([
+                'id',
+                'name',
+                'email',
+                'created_at',
+                'updated_at',
+            ])->find($id);
+
+            if (!$user) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'User not found',
+                    'data' => [],
+                ], ResponseCode::HTTP_NOT_FOUND);
+            }
+
+            $user->syncRoles($request->get('roles', []));
+
+        } catch (RoleDoesNotExist $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Role does not exist',
+                'data' => [],
+            ], ResponseCode::HTTP_NOT_FOUND);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'This action is unauthorized.',
+                'data' => [],
+            ], ResponseCode::HTTP_FORBIDDEN);
+        } catch (\Throwable $e) {
+            Log::error('Failed to assign role: ' . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to assign role: ' . $e->getMessage(),
+                'data' => [],
+            ], ResponseCode::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Role assigned successfully',
+            'data' => $user,
+        ]);
+    }
 }
